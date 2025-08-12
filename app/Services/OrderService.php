@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Order;
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB;
+use App\Models\Menu;
+
+class OrderService
+{
+    public function getFilteredMenus(?int $categoryId, ?string $search)
+        {
+            $query = Menu::with('category');
+
+            if ($categoryId) {
+                $query->where('category_id', $categoryId);
+            }
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+                });
+            }
+
+            return $query->get();
+        }
+
+    // 注文履歴を取得（最新n件）
+    public function getRecentOrders()
+    {
+        return Order::with('items.menu')
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * 注文番号から注文情報を取得し、カート形式の配列で返す
+     * 見つからなければ null を返す
+     */
+    public function getCartByOrderNumber(string $orderNumber): ?array
+    {
+        $order = Order::where('number', $orderNumber)->first();
+        if (!$order) {
+            return null;
+        }
+
+        $items = OrderItem::where('order_id', $order->id)->get();
+        $cart = [];
+
+        foreach ($items as $item) {
+            $menu = $item->menu; // 関連モデルmenuを利用
+            if ($menu) {
+                $cart[] = [
+                    'id' => $menu->id,
+                    'name' => $menu->name,
+                    'price' => $item->price,
+                    'quantity' => $item->quantity,
+                ];
+            }
+        }
+
+        return $cart;
+    }
+
+    public function addToCart(array $cart, int $menuId): array
+        {
+            $menu = Menu::find($menuId);
+            if (!$menu) {
+                // メニューが存在しない場合はカートを変更しないで返す
+                return $cart;
+            }
+
+            foreach ($cart as &$item) {
+                if ($item['id'] === $menu->id) {
+                    $item['quantity']++;
+                    return $cart;
+                }
+            }
+
+            $cart[] = [
+                'id' => $menu->id,
+                'name' => $menu->name,
+                'price' => $menu->price,
+                'quantity' => 1,
+            ];
+
+            return $cart;
+        }
+
+    /**
+     * 注文作成処理
+     * 失敗した場合は ['success' => false] を返す
+     * 成功時は ['success' => true, 'order_number' => 注文番号]
+     */
+    public function createOrder(array $cart): array
+    {
+        $orderNumber = date('Ymd') . '-' . mt_rand(1000, 9999);
+
+        DB::beginTransaction();
+        try {
+            $order = new Order();
+            $order->number = $orderNumber;
+            $order->total = collect($cart)->reduce(fn($total, $item) => $total + ($item['price'] * $item['quantity']), 0);
+            $order->status = '注文中';
+            $order->save();
+
+            foreach ($cart as $item) {
+                $orderItem = new OrderItem();
+                $orderItem->order_id = $order->id;
+                $orderItem->menu_id = $item['id'];
+                $orderItem->quantity = $item['quantity'];
+                $orderItem->price = $item['price'];
+                $orderItem->save();
+            }
+
+            DB::commit();
+            return ['success' => true, 'order_number' => $orderNumber];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // ログ記録などの処理もここで行うとよい
+            return ['success' => false];
+        }
+    }
+}
