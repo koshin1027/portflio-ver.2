@@ -5,17 +5,24 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Category;
 use App\Models\Menu;
+use App\Services\CommonService;
 
 class KitchenService
 {
+    protected $commonService;
+
+    public function __construct(CommonService $commonService)
+    {
+        $this->commonService = $commonService;
+    }
     public function getCategories()
     {
-        return Category::all();
+        return $this->commonService->getAll(Category::class);
     }
 
     public function getMenus()
     {
-        return Menu::with('category')->get();
+        return $this->commonService->getAll(Menu::class, ['category']);
     }
 
     /**

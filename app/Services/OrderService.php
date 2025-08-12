@@ -6,26 +6,37 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
 use App\Models\Menu;
+use App\Services\CommonService;
 
 class OrderService
 {
+    protected $commonService;
+
+    public function __construct(CommonService $commonService)
+    {
+        $this->commonService = $commonService;
+    }
     public function getFilteredMenus(?int $categoryId, ?string $search)
-        {
-            $query = Menu::with('category');
+    {
+        $query = Menu::with('category');
 
-            if ($categoryId) {
-                $query->where('category_id', $categoryId);
-            }
-
-            if (!empty($search)) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
-                });
-            }
-
-            return $query->get();
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
         }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        // 全件取得部分を共通サービス経由に
+        if (!$categoryId && empty($search)) {
+            return $this->commonService->getAll(Menu::class, ['category']);
+        }
+        return $query->get();
+    }
 
     // 注文履歴を取得（最新n件）
     public function getRecentOrders()
@@ -65,29 +76,29 @@ class OrderService
     }
 
     public function addToCart(array $cart, int $menuId): array
-        {
-            $menu = Menu::find($menuId);
-            if (!$menu) {
-                // メニューが存在しない場合はカートを変更しないで返す
-                return $cart;
-            }
-
-            foreach ($cart as &$item) {
-                if ($item['id'] === $menu->id) {
-                    $item['quantity']++;
-                    return $cart;
-                }
-            }
-
-            $cart[] = [
-                'id' => $menu->id,
-                'name' => $menu->name,
-                'price' => $menu->price,
-                'quantity' => 1,
-            ];
-
+    {
+        $menu = $this->commonService->getAll(Menu::class)->find($menuId);
+        if (!$menu) {
+            // メニューが存在しない場合はカートを変更しないで返す
             return $cart;
         }
+
+        foreach ($cart as &$item) {
+            if ($item['id'] === $menu->id) {
+                $item['quantity']++;
+                return $cart;
+            }
+        }
+
+        $cart[] = [
+            'id' => $menu->id,
+            'name' => $menu->name,
+            'price' => $menu->price,
+            'quantity' => 1,
+        ];
+
+        return $cart;
+    }
 
     /**
      * 注文作成処理

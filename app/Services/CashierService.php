@@ -5,9 +5,16 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Menu;
 use App\Models\Category;
+use App\Services\CommonService;
 
 class CashierService
 {
+    protected $commonService;
+
+    public function __construct(CommonService $commonService)
+    {
+        $this->commonService = $commonService;
+    }
     /**
      * 未完了の注文ID一覧を取得
      */
@@ -24,7 +31,7 @@ class CashierService
      */
     public function getCategories()
     {
-        return Category::all();
+        return $this->commonService->getAll(Category::class);
     }
 
     /**
@@ -32,7 +39,7 @@ class CashierService
      */
     public function getAllMenus()
     {
-        return Menu::with('category')->get();
+        return $this->commonService->getAll(Menu::class, ['category']);
     }
 
     /**

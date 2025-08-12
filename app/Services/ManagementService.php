@@ -2,13 +2,16 @@
 
 namespace App\Services;
 use App\Models\Menu;
+use App\Services\CommonService;
 use Illuminate\Support\Facades\Validator;
 
 class ManagementService
 {
-    public function __construct()
+    protected $commonService;
+
+    public function __construct(CommonService $commonService)
     {
-        //
+        $this->commonService = $commonService;
     }
 
     private array $menuRules = [
@@ -29,10 +32,9 @@ class ManagementService
         }
     }
 
-    public function searchMenus($activeCategoryId, $search, $filterStatus,$sortPrice)
+    public function searchMenus($activeCategoryId, $search, $filterStatus, $sortPrice)
     {
-        //プロパティを参照して表示するメニューを表示
-
+        // 一覧取得部分を共通化
         $query = Menu::with('category');
 
         if (!empty($activeCategoryId)) {
@@ -53,6 +55,8 @@ class ManagementService
             $query->orderBy('price', 'desc');
         }
 
+        // 共通サービス経由で取得（ただしpaginateは個別対応）
+        // return $this->commonService->getAll(Menu::class, ['category']);
         return $query->paginate(5);
     }
 
