@@ -9,9 +9,18 @@ use App\Models\Menu;
 use App\Services\CashierService;
 
 class CashierSystem extends Component
-
 {
-    // protected CashierService $cashierService;
+    // LivewireのDIの都合で型宣言を外し、初期値nullで定義
+    // DIの不整合を避けるため、サービス取得用ヘルパーを用意
+    protected $cashierService = null;
+
+    protected function getCashierService()
+    {
+        if ($this->cashierService) {
+            return $this->cashierService;
+        }
+        return app(CashierService::class);
+    }
     public $categories;
     public $menus;
     public $allMenus;
@@ -42,16 +51,14 @@ class CashierSystem extends Component
     //     $this->cashierService = $cashierService;
     // }
 
-    public function mount()
+    public function mount(CashierService $cashierService)
     {
-        // キッチン画面と同じく、未完了の注文idを取得
-        $this->orderNumberCandidates = \App\Models\Order::whereIn('status', ['new', 'preparing', 'ready'])
-            ->orderBy('created_at', 'desc')
-            ->pluck('id')
-            ->toArray();
-
-        $this->categories = Category::all();
-        $this->allMenus = Menu::with('category')->get();
+        $this->cashierService = $cashierService;
+        // サービス経由でDB取得
+        $service = $this->getCashierService();
+        $this->orderNumberCandidates = $service->getOrderNumberCandidates();
+        $this->categories = $service->getCategories();
+        $this->allMenus = $service->getAllMenus();
         $this->selectedCategory = $this->categories->first() ? $this->categories->first()->name : null;
         $this->menus = $this->allMenus->where('category.name', $this->selectedCategory)->values();
         $this->updateClock();
@@ -75,10 +82,8 @@ class CashierSystem extends Component
     // 注文番号を検索
     public function updatedCurrentOrderNumber($value)
     {
-        // idで検索
-        //移譲コード
-
-        $order = \App\Models\Order::with('items.menu')->find($value);
+        // サービス経由で注文取得
+        $order = $this->getCashierService()->findOrderWithItems($value);
         if ($order) {
             $this->orderInfo = [
                 'id' => $order->id,
@@ -96,7 +101,6 @@ class CashierSystem extends Component
                     'quantity' => $item->quantity,
                 ];
             })->toArray() : [];
-            
             $this->updateCart();
             $this->selectedTable = $order->table_number ?? null;
         } else {
@@ -114,8 +118,8 @@ class CashierSystem extends Component
 
     public function addToCart($menuId)
     {
-        //移譲候補
-        $menu = Menu::findOrFail($menuId);
+        // サービス経由でメニュー取得
+        $menu = $this->getCashierService()->findMenu($menuId);
         foreach ($this->cart as &$item) {
             if ($item['id'] === $menu->id) {
                 $item['quantity']++;
