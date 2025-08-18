@@ -47,7 +47,9 @@ class CashierService
      */
     public function findOrderWithItems($orderId)
     {
-        return Order::with('items.menu')->find($orderId);
+        return $this->commonService->transaction(function() use ($orderId) {
+            return Order::where('id', $orderId)->lockForUpdate()->with('items.menu')->firstOrFail();
+        });
     }
 
     /**
@@ -55,6 +57,8 @@ class CashierService
      */
     public function findMenu($menuId)
     {
-        return Menu::findOrFail($menuId);
+        return $this->commonService->transaction(function() use ($menuId) {
+            return Menu::where('id', $menuId)->lockForUpdate()->firstOrFail();
+        });
     }
 }

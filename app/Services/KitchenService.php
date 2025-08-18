@@ -15,6 +15,7 @@ class KitchenService
     {
         $this->commonService = $commonService;
     }
+
     public function getCategories()
     {
         return $this->commonService->getAll(Category::class);
@@ -25,10 +26,8 @@ class KitchenService
         return $this->commonService->getAll(Menu::class, ['category']);
     }
 
-    /**
-     * ステータスでフィルターした注文一覧を取得
-     * 'all' なら全件取得
-     */
+    //ステータスでフィルターした注文一覧を取得
+    //'all' なら全件取得
     public function getOrders(string $status = 'all')
     {
         if ($status === 'all') {
@@ -37,9 +36,8 @@ class KitchenService
         return Order::with('items.menu')->where('status', $status)->latest()->get();
     }
 
-    /**
-     * 注文の件数カウント
-     */
+    
+    //注文の件数カウント
     public function countOrders()
     {
         return [
@@ -51,24 +49,24 @@ class KitchenService
         ];
     }
 
-    /**
-     * 注文ステータスを更新
-     */
+    //注文ステータスを更新
     public function updateOrderStatus(int $orderId, string $status)
     {
-        $order = Order::findOrFail($orderId);
-        $order->status = $status;
-        $order->save();
+        $this->commonService->transaction(function() use ($orderId, $status) {
+            $order = Order::where('id', $orderId)->lockForUpdate()->firstOrFail();
+            $order->status = $status;
+            $order->save();
+        });
     }
 
-    /**
-     * 注文を配達済みにする
-     */
+     //注文を配達済みにする
     public function deliverOrder(int $orderId)
     {
-        $order = Order::findOrFail($orderId);
-        $order->status = 'delivered';
-        $order->delivered_time = now()->format('H:i');
-        $order->save();
+        $this->commonService->transaction(function() use ($orderId) {
+            $order = Order::where('id', $orderId)->lockForUpdate()->firstOrFail();
+            $order->status = 'delivered';
+            $order->delivered_time = now()->format('H:i');
+            $order->save();
+        });
     }
 }
