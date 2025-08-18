@@ -28,6 +28,14 @@ class CommonService
     //トランザクション処理
     public function transaction(callable $callback)
     {
-        return \DB::transaction($callback);
+        try 
+        {
+            return \DB::transaction($callback);
+        } 
+        catch (\Exception $e) 
+        {
+            \Log::error('Transaction failed: ' . $e->getMessage());
+            throw new \RuntimeException('トランザクション処理中にエラーが発生しました。');
+        }
     }
 }
