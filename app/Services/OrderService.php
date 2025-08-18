@@ -18,6 +18,7 @@ class OrderService
         $this->commonService = $commonService;
     }
 
+    //
     public function getFilteredMenus(?int $categoryId, ?string $search)
     {
         //トランザクション処理
@@ -25,10 +26,12 @@ class OrderService
             $query = Menu::with('category');
         });
 
+        //カテゴリーで検索して表示
         if ($categoryId) {
             $query->where('category_id', $categoryId);
         }
 
+        //検索して表示
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
@@ -36,14 +39,14 @@ class OrderService
             });
         }
 
-        // 全件取得部分を共通サービス経由に
+        // 全件取得
         if (!$categoryId && empty($search)) {
             return $this->commonService->getAll(Menu::class, ['category']);
         }
         return $query->get();
     }
 
-    // 注文履歴を取得（最新n件）
+    // 注文履歴を取得
     public function getRecentOrders()
     {
         return Order::with('items.menu')
@@ -57,58 +60,61 @@ class OrderService
      */
     public function getCartByOrderNumber(string $orderNumber): ?array
     {
-        $order = $this->commonService->findWithLock(Order::class, $orderNumber);
-        if (!$order) {
-            return null;
-        }
+        return $this->commonService->transaction(function () use ($orderNumber) {
+            $order = $this->commonService->findWithLock(Order::class, $orderNumber);
+            if (!$order) {
+                return null;
+            }
 
-        $items = OrderItem::where('order_id', $order->id)->get();
-        $cart = [];
-        foreach ($items as $item) {
-            $cart[] = [
-                'id' => $item->menu_id,
-                'name' => $item->menu->name,
-                'price' => $item->price,
-                'quantity' => $item->quantity,
-            ];
-        }
+            $items = OrderItem::where('order_id', $order->id)->get();
+            $cart = [];
+            foreach ($items as $item) {
+                $cart[] = [
+                    'id' => $item->menu_id,
+                    'name' => $item->menu->name,
+                    'price' => $item->price,
+                    'quantity' => $item->quantity,
+                ];
+            }
 
-        return $cart;
+            return $cart;
+        });
     }
 
+    // カート追加処理
     public function addToCart(array $cart, int $menuId): array
     {
-        $menu = $this->commonService->findWithLock(Menu::class, $menuId);
+        return $this->commonService->transaction(function () use ($cart, $menuId) {
+            $menu = $this->commonService->findWithLock(Menu::class, $menuId);
 
-        if (!$menu) {
-            return $cart;
-        }
-
-        foreach ($cart as &$item) {
-            if ($item['id'] === $menu->id) {
-                $item['quantity']++;
+            if (!$menu) {
                 return $cart;
             }
-        }
 
-        $cart[] = [
-            'id' => $menu->id,
-            'name' => $menu->name,
-            'price' => $menu->price,
-            'quantity' => 1,
-        ];
+            foreach ($cart as &$item) {
+                if ($item['id'] === $menu->id) {
+                    $item['quantity']++;
+                    return $cart;
+                }
+            }
 
-        return $cart;
+            $cart[] = [
+                'id' => $menu->id,
+                'name' => $menu->name,
+                'price' => $menu->price,
+                'quantity' => 1,
+            ];
+
+            return $cart;
+        });
     }
 
     //注文作成処理
     public function createOrder(array $cart): array
     {
-        $orderNumber = date('Ymd') . '-' . mt_rand(1000, 9999);
+        return $this->commonService->transaction(function () use ($cart) {
+            $orderNumber = date('Ymd') . '-' . mt_rand(1000, 9999);
 
-        DB::beginTransaction();
-
-        try {
             $order = new Order();
             $order->number = $orderNumber;
             $order->total = collect($cart)->reduce(fn($total, $item) => $total + ($item['price'] * $item['quantity']), 0);
@@ -124,11 +130,7 @@ class OrderService
                 $orderItem->save();
             }
 
-            DB::commit();
             return ['success' => true, 'order_number' => $orderNumber];
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return ['success' => false];
-        }
+        });
     }
 }
