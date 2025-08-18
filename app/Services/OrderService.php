@@ -12,10 +12,12 @@ class OrderService
 {
     protected $commonService;
 
+    //依存性注入
     public function __construct(CommonService $commonService)
     {
         $this->commonService = $commonService;
     }
+
     public function getFilteredMenus(?int $categoryId, ?string $search)
     {
         //トランザクション処理
@@ -55,24 +57,20 @@ class OrderService
      */
     public function getCartByOrderNumber(string $orderNumber): ?array
     {
-        $order = Order::where('number', $orderNumber)->first();
+        $order = $this->commonService->findWithLock(Order::class, $orderNumber);
         if (!$order) {
             return null;
         }
 
         $items = OrderItem::where('order_id', $order->id)->get();
         $cart = [];
-
         foreach ($items as $item) {
-            $menu = $item->menu; // 関連モデルmenuを利用
-            if ($menu) {
-                $cart[] = [
-                    'id' => $menu->id,
-                    'name' => $menu->name,
-                    'price' => $item->price,
-                    'quantity' => $item->quantity,
-                ];
-            }
+            $cart[] = [
+                'id' => $item->menu_id,
+                'name' => $item->menu->name,
+                'price' => $item->price,
+                'quantity' => $item->quantity,
+            ];
         }
 
         return $cart;
@@ -80,14 +78,12 @@ class OrderService
 
     public function addToCart(array $cart, int $menuId): array
     {
-        $menu = $this->commonService->getAll(Menu::class)->find($menuId);
+        $menu = $this->commonService->findWithLock(Menu::class, $menuId);
 
-        // メニューが存在しない場合はカートを変更しないで返す
         if (!$menu) {
             return $cart;
         }
 
-        //カート内で同じ商品があれば個数を増やす
         foreach ($cart as &$item) {
             if ($item['id'] === $menu->id) {
                 $item['quantity']++;
@@ -95,7 +91,6 @@ class OrderService
             }
         }
 
-        //同じ商品がなければ新規作成
         $cart[] = [
             'id' => $menu->id,
             'name' => $menu->name,

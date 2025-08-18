@@ -19,9 +19,10 @@ class ManagementService
         'images' => 'nullable|string',
     ];
 
-    //初期化(依存性注入)
+    //初期化
     public function __construct(CommonService $commonService)
     {
+        //依存性注入
         $this->commonService = $commonService;
     }
 
