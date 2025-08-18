@@ -18,7 +18,10 @@ class OrderService
     }
     public function getFilteredMenus(?int $categoryId, ?string $search)
     {
-        $query = Menu::with('category');
+        //トランザクション処理
+        $this->commonService->transaction(function() use(&$query) {
+            $query = Menu::with('category');
+        });
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
@@ -78,11 +81,13 @@ class OrderService
     public function addToCart(array $cart, int $menuId): array
     {
         $menu = $this->commonService->getAll(Menu::class)->find($menuId);
+
+        // メニューが存在しない場合はカートを変更しないで返す
         if (!$menu) {
-            // メニューが存在しない場合はカートを変更しないで返す
             return $cart;
         }
 
+        //カート内で同じ商品があれば個数を増やす
         foreach ($cart as &$item) {
             if ($item['id'] === $menu->id) {
                 $item['quantity']++;
@@ -90,6 +95,7 @@ class OrderService
             }
         }
 
+        //同じ商品がなければ新規作成
         $cart[] = [
             'id' => $menu->id,
             'name' => $menu->name,
@@ -100,16 +106,13 @@ class OrderService
         return $cart;
     }
 
-    /**
-     * 注文作成処理
-     * 失敗した場合は ['success' => false] を返す
-     * 成功時は ['success' => true, 'order_number' => 注文番号]
-     */
+    //注文作成処理
     public function createOrder(array $cart): array
     {
         $orderNumber = date('Ymd') . '-' . mt_rand(1000, 9999);
 
         DB::beginTransaction();
+
         try {
             $order = new Order();
             $order->number = $orderNumber;
@@ -130,7 +133,6 @@ class OrderService
             return ['success' => true, 'order_number' => $orderNumber];
         } catch (\Exception $e) {
             DB::rollBack();
-            // ログ記録などの処理もここで行うとよい
             return ['success' => false];
         }
     }
