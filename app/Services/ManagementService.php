@@ -19,11 +19,13 @@ class ManagementService
         'images' => 'nullable|string',
     ];
 
+    //初期化(依存性注入)
     public function __construct(CommonService $commonService)
     {
         $this->commonService = $commonService;
     }
 
+    //バリデーション
     public function validateMenu(array $data)
     {
         $validator = Validator::make($data, $this->menuRules);
@@ -32,6 +34,7 @@ class ManagementService
         }
     }
 
+    //メニュー並び替え
     public function searchMenus($activeCategoryId, $search, $filterStatus, $sortPrice)
     {
         // トランザクション処理
@@ -39,30 +42,35 @@ class ManagementService
             $query = $this->commonService->getAllWithRelations(Menu::class, ['category']);
         });
 
+        //選択したカテゴリーのみを表示
         if (!empty($activeCategoryId)) {
             $query->where('category_id', $activeCategoryId);
         }
 
+        //検索欄でヒットした商品のみを表示
         if (!empty($search)) {
             $query->where('name', 'like', '%' . $search . '%');
         }
 
+        //選択されたステータスの商品のみを表示
         if (!empty($filterStatus) && $filterStatus !== 'すべての状態') {
             $query->where('status', $filterStatus);
         }
 
+        //昇順または降順で表示
         if ($sortPrice === '低い順') {
             $query->orderBy('price', 'asc');
         } elseif ($sortPrice === '高い順') {
             $query->orderBy('price', 'desc');
         }
 
+        //ページネーション
         return $query->paginate(5);
     }
 
+    //メニュー作成
     public function createMenu($name, $price, $category_id, $status, $amount, $explanation) : void
     {
-
         // メニュー新規作成
         $data = [
             'name' => $name,
@@ -80,9 +88,9 @@ class ManagementService
         $this->commonService->transaction(function() use($data) {
             Menu::create($this->data);
         });
-
     }
 
+    //メニュー更新
     public function updateMenu(Menu $menu, array $data) : void
     {
         // バリデーション
@@ -99,6 +107,7 @@ class ManagementService
         });
     }
 
+    //メニュー削除
     public function deleteMenu($deleteMenuId)
     {
         // トランザクション処理
