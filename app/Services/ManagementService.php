@@ -34,30 +34,30 @@ class ManagementService
 
     public function searchMenus($activeCategoryId, $search, $filterStatus, $sortPrice)
     {
-        //トランザクション処理
+        // トランザクション処理
         $this->commonService->transaction(function() use(&$query) {
-            $query = Menu::with('category');
+            $query = $this->commonService->getAllWithRelations(Menu::class, ['category']);
         });
 
         if (!empty($activeCategoryId)) {
-             $query->where('category_id', $activeCategoryId);
+            $query->where('category_id', $activeCategoryId);
         }
 
         if (!empty($search)) {
-             $query->where('name', 'like', '%' . $search . '%');
+            $query->where('name', 'like', '%' . $search . '%');
         }
 
         if (!empty($filterStatus) && $filterStatus !== 'すべての状態') {
-             $query->where('status', $filterStatus);
+            $query->where('status', $filterStatus);
         }
 
         if ($sortPrice === '低い順') {
             $query->orderBy('price', 'asc');
         } elseif ($sortPrice === '高い順') {
-             $query->orderBy('price', 'desc');
+            $query->orderBy('price', 'desc');
         }
 
-        return  $query->paginate(5);
+        return $query->paginate(5);
     }
 
     public function createMenu($name, $price, $category_id, $status, $amount, $explanation) : void
@@ -87,15 +87,12 @@ class ManagementService
     {
         // バリデーション
         $this->validateMenu($data);
-        
+
         // トランザクション処理
         $this->commonService->transaction(function() use($data, $menu) {
-            // ロック処理
-            $menu = Menu::where('id', $menu->id)->lockForUpdate()->first();
 
-            if (!$menu) {
-                throw new \Exception("Menu with ID {$menu->id} not found.");
-            }
+            // ロック付きでメニューを取得
+            $menu = $this->commonService->findWithLock(Menu::class, $menu->id);
 
             // 更新処理
             $menu->update($data);
@@ -106,13 +103,9 @@ class ManagementService
     {
         // トランザクション処理
         $this->commonService->transaction(function() use($deleteMenuId) {
-
-            //ロック処理
-            $menu = Menu::where('id', $deleteMenuId)->lockForUpdate()->first();
-
-            if (!$menu) {
-                throw new \Exception("Menu with ID {$deleteMenuId} not found.");
-            }
+            
+            // ロック付きでメニューを取得
+            $menu = $this->commonService->findWithLock(Menu::class, $deleteMenuId);
 
             // 削除処理
             $menu->delete();
