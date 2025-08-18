@@ -17,4 +17,9 @@ class CommonService
         }
         return $modelClass::all();
     }
+
+    public function transaction(callable $callback)
+    {
+        return \DB::transaction($callback);
+    }
 }
