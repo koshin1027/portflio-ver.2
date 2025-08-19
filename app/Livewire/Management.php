@@ -11,6 +11,7 @@ use App\Services\ManagementService;
 class Management extends Component
 
 {
+    //ページネーション用トレイト
     use WithPagination;
 
     //サービス
@@ -29,22 +30,25 @@ class Management extends Component
     public $selectMenus;
 
     // モーダル制御プロパティ
+    
+    //追加
     public $isAddModalOpen = false;
-    public $isEditModalOpen = false;
-    public $isDeleteModalOpen = false;
 
-    // 編集対象ID
+    //編集
+    public $isEditModalOpen = false;
     public $editMenuId;
+
+    //削除
+    public $isDeleteModalOpen = false;
     public $deleteMenuId;
 
-    // フォーム用プロパティ
+    // 商品情報プロパティ
     public $name = '';
     public $price = 0;
     public $category_id = '';
     public $status = '';
     public $amount = 0;
     public $explanation = '';
-    public $images = '';
 
     //依存性注入
     public function boot(ManagementService $managementService)
@@ -107,7 +111,7 @@ class Management extends Component
     // オープン
     public function openAddModal()
     {
-        //オープン前に値をすべてリセット
+        //オープン前にフォームの値をすべてリセット
         $this->resetForm();
 
         $this->isAddModalOpen = true;
@@ -173,7 +177,6 @@ class Management extends Component
         'status' => $this->status,
         'amount' => $this->amount,
         'explanation' => $this->explanation,
-        // 'images' => $this->images,
     ];
 
     //managementServiceから「注文を追加する機能」を移譲
@@ -186,18 +189,23 @@ class Management extends Component
         $this->isEditModalOpen = false;
     }
 
+    //「X」ボタン押下時用のクローズ処理
     public function closeEditModal()
     {
         $this->isEditModalOpen = false;
     }
 
-    //モーダル制御(削除)
+    // 削除用モーダルの制御処理
+    
+    //オープン
     public function openDeleteModal($id)
     {
+        //対象のIDを$deleteMenuIdに格納
         $this->deleteMenuId = $id;
         $this->isDeleteModalOpen = true;
     }
 
+    //クローズ
     public function closeDeleteModal()
     {
         $this->isDeleteModalOpen = false;
@@ -206,16 +214,19 @@ class Management extends Component
     // 削除処理
     public function delete()
     {
-         // ManagementServiceサービスに委譲
+         // managementServiceから「メニューを削除する機能」を移譲
         $menus = $this->managementService->deleteMenu(
             $this->deleteMenuId
         );
 
+        //$deleteMenuIdをリセット
         $this->deleteMenuId = null;
+
+        //クローズ
         $this->isDeleteModalOpen = false;
     }
 
-    // ページネーション: 指定ページへ移動
+    // ページネーション
     public function gotoPage($page)
     {
         $this->setPage($page);
