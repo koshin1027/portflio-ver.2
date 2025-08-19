@@ -21,6 +21,7 @@ class CashierSystem extends Component
         }
         return app(CashierService::class);
     }
+    
     public $categories;
     public $menus;
     public $allMenus;
