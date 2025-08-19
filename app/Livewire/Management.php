@@ -11,7 +11,7 @@ use App\Services\ManagementService;
 class Management extends Component
 
 {
-    //ページネーション用トレイト
+    //ページネーショントレイト
     use WithPagination;
 
     //サービス
