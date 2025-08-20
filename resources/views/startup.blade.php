@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/css/startsystem.css">
 @endsection
 
-@section('body-content')
+@section('content')
     @livewire('start-up')
 @endsection
 

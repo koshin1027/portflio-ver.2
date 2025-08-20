@@ -10,21 +10,38 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\CashierController;
 
-//スタート画面
-Route::get('/', [StartUpController::class, 'index'])->name('startup');
+//トップページは新規登録画面へリダイレクト
+Route::get('/', function() {
+    return redirect()->route('register');
+});
 
-//選択
-Route::get('/mode', [ModeController::class, 'index'])->name('mode');
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    //ログイン後のスタートアップ画面
+    Route::get('/startup', function() {
+        return view('livewire.start-up');
+    })->name('startup');
 
-//管理
-Route::get('/management', [ManagementController::class, 'index'])->name('management');
+    // 管理者(admin)のみ
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/mode', [ModeController::class, 'index'])->name('mode');
+        Route::get('/management', [ManagementController::class, 'index'])->name('management');
+        Route::get('/dashboard', function () {
+            return view('dashboard');
+        })->name('dashboard');
+    });
 
-//注文
-Route::get('/order', [OrderController::class, 'index'])->name('order');
+    // スタッフ(staff)のみ
+    Route::middleware('role:staff')->group(function () {
+        Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
+        Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
+    });
 
-//キッチン
-Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
-
-//レジ
-Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
-
+    // お客(customer)のみ
+    Route::middleware('role:customer')->group(function () {
+        Route::get('/order', [OrderController::class, 'index'])->name('order');
+    });
+});

@@ -77,7 +77,11 @@
                                     </div>
                                     <div class="flex-grow">
                                         <div class="flex justify-between">
-                                            <p class="font-medium">{{ $item->menu->name }}</p>
+                                            @if($item->menu)
+                                                <p class="font-medium">{{ $item->menu->name }}</p>
+                                            @else
+                                                <p class="font-medium text-red-500">メニュー未設定</p>
+                                            @endif
                                             <p>×{{ $item->quantity }}</p>
                                         </div>
                                         <p class="text-sm text-gray-400">{{ $item->menu->description ?? '' }}</p>
@@ -171,6 +175,7 @@
                 </div>
                 
                 <!-- データベースから金額を取得して表示 -->
+                @if(isset($menu))
                 <div class="border-t border-gray-700 pt-4 mb-6">
                     <div class="flex justify-between text-gray-400">
                         <span>小計</span>
@@ -185,6 +190,11 @@
                         <span>{{ $menu->total }}</span>
                     </div>
                 </div>
+                @else
+                <div class="border-t border-gray-700 pt-4 mb-6 text-red-500 text-center">
+                    金額情報がありません
+                </div>
+                @endif
                 
                 <div class="border-t border-gray-700 pt-4">
                     <h4 class="font-medium mb-2">ステータス変更</h4>

@@ -1,12 +1,18 @@
 
-@extends('layouts.app')
 
-@section('css')
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>レジ画面</title>
     <link rel="stylesheet" href="/css/cashier-system.css">
-@endsection
-
-@section('body-content')
+    <script src="https://cdn.tailwindcss.com"></script>
+    @livewireStyles
+</head>
+<body>
     @livewire('cashier-system')
-@endsection
+    @livewireScripts
+</body>
+</html>
 
 
