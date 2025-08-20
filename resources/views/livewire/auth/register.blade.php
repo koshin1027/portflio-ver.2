@@ -13,6 +13,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public string $role = 'user'; // デフォルト値は'user'とする
 
     /**
      * Handle an incoming registration request.
@@ -23,9 +24,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string'],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+        // roleも保存
 
         event(new Registered(($user = User::create($validated))));
 
@@ -84,6 +87,16 @@ new #[Layout('components.layouts.auth')] class extends Component {
             :placeholder="__('Confirm password')"
             viewable
         />
+
+            <!-- Role Select -->
+            <div>
+                <label for="role" class="block text-sm font-medium text-gray-700">{{ __('Role') }}</label>
+                <select id="role" wire:model="role" name="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="user">{{ __('User') }}</option>
+                    <option value="admin">{{ __('Admin') }}</option>
+                    <option value="manager">{{ __('Manager') }}</option>
+                </select>
+            </div>
 
         <div class="flex items-center justify-end">
             <flux:button type="submit" variant="primary" class="w-full">
