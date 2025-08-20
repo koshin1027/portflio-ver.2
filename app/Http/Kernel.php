@@ -6,20 +6,11 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
-    /**
-     * The application's global HTTP middleware stack.
-     *
-     * @var array
-     */
+
     protected $middleware = [
         // ...existing code...
     ];
 
-    /**
-     * The application's route middleware groups.
-     *
-     * @var array
-     */
     protected $middlewareGroups = [
         'web' => [
             // ...existing code...
@@ -29,12 +20,8 @@ class Kernel extends HttpKernel
         ],
     ];
 
-    /**
-     * The application's route middleware.
-     *
-     * @var array
-     */
     protected $routeMiddleware = [
-        'role' => App\Http\Middleware\RoleMiddleware::class,
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
+        'check.age' => \App\Http\Middleware\CheckAge::class,
     ];
 }

@@ -45,3 +45,9 @@ Route::middleware([
         Route::get('/order', [OrderController::class, 'index'])->name('order');
     });
 });
+
+
+//テスト用
+Route::get('/test-age', function () {
+    return "アクセスOK!";
+})->middleware('check.age:18');
