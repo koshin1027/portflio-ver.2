@@ -33,8 +33,7 @@
         <div class="flex items-center justify-between mb-8">
             <h1 class="text-4xl font-bold text-white">POS システム</h1>
             <div class="text-right">
-                <p class="text-gray-400" id="date">0000年00月00日</p>
-                <p class="text-xl text-white" id="clock">00:00:00</p>
+                @livewire('navigation-menu')
             </div>
         </div>
 

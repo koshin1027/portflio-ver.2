@@ -9,45 +9,23 @@ use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\CashierController;
+use App\Http\Controllers\PageController;
 
-//トップページは新規登録画面へリダイレクト
 Route::get('/', function() {
-    return redirect()->route('register');
+    if (auth()->check()) {
+        return redirect()->route('dashboard'); // ログイン済みならmode画面へ
+    }
+    return redirect()->route('login'); // 未ログインなら登録画面
 });
 
-Route::get('/mode', [ModeController::class, 'index'])->name('mode');
-
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    //ログイン後のスタートアップ画面
-    Route::get('/startup', function() {
-        return view('livewire.start-up');
-    })->name('startup');
-    // 管理者(admin)
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/management', [ManagementController::class, 'index'])->name('management');
-        Route::get('/dashboard', function () {
+Route::get('/dashboard', function () {
             return view('dashboard');
         })->name('dashboard');
 
-        //他ミドルウェアと被りのため未実装
-        // Route::get('/order', [OrderController::class, 'index'])->name('order');
-        // Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
-        // Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
-    });
-
-    // スタッフ(staff)
-    Route::middleware('role:staff')->group(function () {
-        Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
-        Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
-    });
-
-    // お客様(customer)
-    Route::middleware('role:customer')->group(function () {
-        Route::get('/order', [OrderController::class, 'index'])->name('order');
-    });
-
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/mode', [PageController::class, 'mode'])->name('mode');
+    Route::get('/order', [PageController::class, 'order'])->name('order');
+    Route::get('/kitchen', [PageController::class, 'kitchen'])->name('kitchen');
+    Route::get('/cashier', [PageController::class, 'cashier'])->name('cashier');
+    Route::get('/management', [PageController::class, 'management'])->name('management');
 });
