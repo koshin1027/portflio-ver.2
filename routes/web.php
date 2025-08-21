@@ -24,8 +24,7 @@ Route::middleware([
     Route::get('/startup', function() {
         return view('livewire.start-up');
     })->name('startup');
-
-    // 管理者(admin)のみ
+    // 管理者(admin)
     Route::middleware('role:admin')->group(function () {
         Route::get('/mode', [ModeController::class, 'index'])->name('mode');
         Route::get('/management', [ManagementController::class, 'index'])->name('management');
@@ -34,17 +33,20 @@ Route::middleware([
         })->name('dashboard');
     });
 
-    // スタッフ(staff)のみ
+    // スタッフ(staff)
     Route::middleware('role:staff')->group(function () {
         Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
         Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
     });
 
-    // お客(customer)のみ
+    // お客様(customer)
     Route::middleware('role:customer')->group(function () {
         Route::get('/order', [OrderController::class, 'index'])->name('order');
     });
+
 });
+
+
 
 
 //テスト用
