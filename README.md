@@ -21,7 +21,7 @@
 
 🔗 URL
 
-- 本番環境: https://portfolio-pos-master-l9ctee.laravel.cloud
+- portflio-ver2-main-gpnbhs.laravel.cloud
 
 🛠 使用技術
 
