@@ -21,7 +21,7 @@
 
 🔗 URL
 
-- portflio-ver2-main-gpnbhs.laravel.cloud
+- : portflio-ver2-main-gpnbhs.laravel.cloud
 
 🛠 使用技術
 
