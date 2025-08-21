@@ -28,6 +28,9 @@ Route::middleware([
     Route::middleware('role:admin')->group(function () {
         Route::get('/mode', [ModeController::class, 'index'])->name('mode');
         Route::get('/management', [ManagementController::class, 'index'])->name('management');
+        Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
+        Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
+        Route::get('/order', [OrderController::class, 'index'])->name('order');
         Route::get('/dashboard', function () {
             return view('dashboard');
         })->name('dashboard');
@@ -45,9 +48,6 @@ Route::middleware([
     });
 
 });
-
-
-
 
 //テスト用
 Route::get('/test-age', function () {
