@@ -29,6 +29,16 @@
                 <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
             </div>
 
+            <!-- ロール選択 -->
+            <div class="mt-4">
+                <x-label for="role" value="アカウントの種類" />
+                <select id="role" name="role" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="admin">管理者</option>
+                    <option value="staff">スタッフ</option>
+                    <option value="customer">カスタマー</option>
+                </select>
+            </div>
+
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
                 <div class="mt-4">
                     <x-label for="terms">
