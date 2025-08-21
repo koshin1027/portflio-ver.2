@@ -15,6 +15,8 @@ Route::get('/', function() {
     return redirect()->route('register');
 });
 
+Route::get('/mode', [ModeController::class, 'index'])->name('mode');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -26,14 +28,15 @@ Route::middleware([
     })->name('startup');
     // 管理者(admin)
     Route::middleware('role:admin')->group(function () {
-        Route::get('/mode', [ModeController::class, 'index'])->name('mode');
         Route::get('/management', [ManagementController::class, 'index'])->name('management');
-        Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
-        Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
-        Route::get('/order', [OrderController::class, 'index'])->name('order');
         Route::get('/dashboard', function () {
             return view('dashboard');
         })->name('dashboard');
+
+        //他ミドルウェアと被りのため未実装
+        // Route::get('/order', [OrderController::class, 'index'])->name('order');
+        // Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
+        // Route::get('/cashier', [CashierController::class, 'index'])->name('cashier');
     });
 
     // スタッフ(staff)
@@ -48,8 +51,3 @@ Route::middleware([
     });
 
 });
-
-//テスト用
-Route::get('/test-age', function () {
-    return "アクセスOK!";
-})->middleware('check.age:18');

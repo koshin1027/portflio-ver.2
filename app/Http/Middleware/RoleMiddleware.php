@@ -11,7 +11,7 @@ class RoleMiddleware
     public function handle($request, Closure $next, ...$roles)
     {
         $user = Auth::user();
-        if (!$user || !in_array($user->role, $roles)) {
+        if (!in_array($user->role, $roles)) {
             abort(403, 'この画面へのアクセス権限がありません');
         }
         return $next($request);
