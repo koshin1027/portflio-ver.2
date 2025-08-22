@@ -20,8 +20,7 @@
 （例：飲食店向けのPOSシステム）
 
 🔗 URL
-
-- 本番環境: https://portfolio-pos-master-l9ctee.laravel.cloud
+- https://portflio-ver2-main-gpnbhs.laravel.cloud/
 
 🛠 使用技術
 
