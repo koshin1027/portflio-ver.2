@@ -9,13 +9,19 @@ use Illuminate\Support\Facades\Auth;
 class PageController extends Controller
 {
     //全ユーザー許可
+    public function dashboard()
+    {
+        return view('dashboard');
+    }
+
+    //全ユーザー許可
     public function mode()
     {
         $user = Auth::user();
         if ($user->role) {
             return view('mode'); // resources/views/mode.blade.php
         }
-        
+
         abort(403, 'アクセス権限がありません');
     }
 
