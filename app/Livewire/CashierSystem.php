@@ -156,10 +156,11 @@ class CashierSystem extends Component
     }
 
     //個数を減らす処理
-    //もし0以下なら削除
     public function decreaseQuantity($index)
     {
         $this->cart[$index]['quantity']--;
+
+        //もし0以下なら削除
         if ($this->cart[$index]['quantity'] <= 0) {
             array_splice($this->cart, $index, 1);
         }
