@@ -1,23 +1,14 @@
 <div>
- <!-- ヘッダー部分 -->
+    <!-- ヘッダー部分 -->
     <header class="bg-gray-900 p-4 shadow-lg">
         <div class="container mx-auto flex items-center justify-between">
             <div class="flex items-center">
-                <button id="backButton" class="mr-4 p-2 rounded-full hover:bg-gray-800" wire:click="backToStart">
+                <button class="mr-4 p-2 rounded-full hover:bg-gray-800" wire:click="backToStart">
                     <svg class="w-6 h-6 icon" viewBox="0 0 24 24">
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <h1 class="text-2xl font-bold">レジ</h1>
-            </div>
-            <div class="flex items-center">
-                <button id="orderStatusButton" class="flex items-center mr-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg btn" onclick="window.location.href='/kitchen'">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    注文状況
-                </button>
-             
+                <h1 class="text-2xl font-bold">注文状況確認</h1>
             </div>
         </div>
     </header>

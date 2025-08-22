@@ -1,5 +1,5 @@
 <div>
-       <!-- ヘッダー部分 -->
+    <!-- ヘッダー部分 -->
     <header class="bg-gray-900 p-4 shadow-lg">
         <div class="container mx-auto flex items-center justify-between">
             <div class="flex items-center">
