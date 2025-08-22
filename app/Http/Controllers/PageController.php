@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Auth;
 //ユーザ情報(role)を参照してアクセス制御
 class PageController extends Controller
 {
-    //全ユーザー許可
+    //ダッシュボード(全ユーザー許可)
     public function dashboard()
     {
         return view('dashboard');
     }
 
-    //全ユーザー許可
+    //選択画面(全ユーザー許可)
     public function mode()
     {
         $user = Auth::user();
