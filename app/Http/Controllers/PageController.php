@@ -18,6 +18,7 @@ class PageController extends Controller
     public function mode()
     {
         $user = Auth::user();
+        
         if ($user->role) {
             return view('mode'); // resources/views/mode.blade.php
         }

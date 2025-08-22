@@ -13,11 +13,11 @@ class CashierService
 
     public function __construct(CommonService $commonService)
     {
+        //依存性注入
         $this->commonService = $commonService;
     }
-    /**
-     * 未完了の注文ID一覧を取得
-     */
+
+    // 未完了の注文ID一覧を取得
     public function getOrderNumberCandidates()
     {
         return Order::whereIn('status', ['new', 'preparing', 'ready'])
@@ -26,25 +26,19 @@ class CashierService
             ->toArray();
     }
 
-    /**
-     * カテゴリ一覧を取得
-     */
+    //カテゴリ一を全取得
     public function getCategories()
     {
         return $this->commonService->getAll(Category::class);
     }
 
-    /**
-     * 全メニュー（カテゴリ情報付き）を取得
-     */
+    //全メニュー（カテゴリ情報付き）を取得
     public function getAllMenus()
     {
         return $this->commonService->getAll(Menu::class, ['category']);
     }
 
-    /**
-     * 注文IDで注文情報を取得
-     */
+    //注文IDで注文情報を取得
     public function findOrderWithItems($orderId)
     {
         return $this->commonService->transaction(function() use ($orderId) {
@@ -52,9 +46,7 @@ class CashierService
         });
     }
 
-    /**
-     * メニューIDでメニューを取得
-     */
+    //メニューIDでメニューを取得
     public function findMenu($menuId)
     {
         return $this->commonService->transaction(function() use ($menuId) {

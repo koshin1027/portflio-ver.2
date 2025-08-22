@@ -35,7 +35,7 @@ class CommonService
         catch (\Exception $e) 
         {
             \Log::error('Transaction failed: ' . $e->getMessage());
-            throw new \RuntimeException('エラーが発生しました。処理をロールバックしました。');
+            throw new \RuntimeException;
         }
     }
 }

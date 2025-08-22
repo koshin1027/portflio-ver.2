@@ -9,6 +9,7 @@ class ManagementService
 {
     protected $commonService;
 
+    //バリデーションルール
     private array $menuRules = [
         'name' => 'required|string|max:255',
         'price' => 'required|numeric|min:0',
@@ -87,7 +88,7 @@ class ManagementService
 
         //トランザクション処理
         $this->commonService->transaction(function() use($data) {
-            Menu::create($this->data);
+            Menu::create($data);
         });
     }
 

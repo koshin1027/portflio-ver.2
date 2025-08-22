@@ -13,26 +13,31 @@ class KitchenService
 
     public function __construct(CommonService $commonService)
     {
+        //依存性注入
         $this->commonService = $commonService;
     }
 
+    //カテゴリーを全取得
     public function getCategories()
     {
         return $this->commonService->getAll(Category::class);
     }
 
+    //メニューを全取得
     public function getMenus()
     {
         return $this->commonService->getAll(Menu::class, ['category']);
     }
 
     //ステータスでフィルターした注文一覧を取得
-    //'all' なら全件取得
     public function getOrders(string $status = 'all')
     {
+        //'all' なら全件取得
         if ($status === 'all') {
             return Order::with('items.menu')->latest()->get();
         }
+
+        //ステータスと一致する注文情報を取得
         return Order::with('items.menu')->where('status', $status)->latest()->get();
     }
 
@@ -59,7 +64,7 @@ class KitchenService
         });
     }
 
-     //注文を配達済みにする
+    //注文を配達済みにする
     public function deliverOrder(int $orderId)
     {
         $this->commonService->transaction(function() use ($orderId) {
