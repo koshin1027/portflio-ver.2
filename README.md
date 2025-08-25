@@ -31,7 +31,7 @@
 - フロントエンド: HTML / CSS / JavaScript /Tailwind CSS
 - バックエンド: PHP / Laravel
 - インフラ: PostgreSQL /　Laravel Cloud など
-- その他: Livewire
+- その他: Livewire / jetstream
 
 🚀 機能一覧
 
