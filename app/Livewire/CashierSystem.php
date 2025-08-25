@@ -3,17 +3,16 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\Redirector;
 use App\Models\Category;
 use App\Models\Menu;
 use App\Services\CashierService;
 
 class CashierSystem extends Component
 {
-    // LivewireのDIの都合で型宣言を外し、初期値nullで定義
-    // DIの不整合を避けるため、サービス取得用ヘルパーを用意
+    // サービスクラス（CashierService）を保持
     protected $cashierService = null;
 
+    // サービス取得用ヘルパー（DI不整合回避用）
     protected function getCashierService()
     {
         if ($this->cashierService) {
@@ -22,6 +21,7 @@ class CashierSystem extends Component
         return app(CashierService::class);
     }
     
+    // データバインディング用プロパティ
     public $categories;
     public $menus;
     public $allMenus;
@@ -47,16 +47,11 @@ class CashierSystem extends Component
     public $completeChangeAmount = '';
     public $completeOrderItems = [];
 
-    // public function boot(CashierService $cashierService)
-    // {
-    //     $this->cashierService = $cashierService;
-    // }
-
-    //初期化
+    // 初期化
     public function mount(CashierService $cashierService)
     {
         $this->cashierService = $cashierService;
-        // サービス経由でDB取得
+
         $service = $this->getCashierService();
         $this->orderNumberCandidates = $service->getOrderNumberCandidates();
         $this->categories = $service->getCategories();
@@ -66,32 +61,29 @@ class CashierSystem extends Component
         $this->updateClock();
     }
 
-
-    //描画
+    // 描画
     public function render()
     {
         return view('livewire.cashier-system');
     }
 
-    //前画面(mode)に戻る
+    // 前画面(mode)に戻る
     public function backToStart()
     {
         return redirect()->route('mode');
     }
 
-    //
+    // 注文番号検索
     public function searchOrder()
     {
         $this->updatedCurrentOrderNumber($this->currentOrderNumber);
     }
 
-    // 注文番号を検索
+    // 注文番号変更時に注文情報を取得
     public function updatedCurrentOrderNumber($value)
     {
-        //getCashierServiceから「??機能」を移譲
         $order = $this->getCashierService()->findOrderWithItems($value);
 
-        //$orderが存在するなら、$orderInfoに検索した注文情報を定義
         if ($order) {
             $this->orderInfo = [
                 'id' => $order->id,
@@ -100,7 +92,6 @@ class CashierSystem extends Component
                 'items' => $order->items ?? [],
             ];
 
-            // カート内容も反映
             $this->cart = $order->items ? $order->items->map(function($item) {
                 return [
                     'id' => $item->menu_id,
@@ -121,17 +112,17 @@ class CashierSystem extends Component
         }
     }
 
-    //時計処理
+    // 現在時刻更新
     public function updateClock()
     {
         $this->clock = now()->format('H:i:s');
     }
 
-    //カート追加処理
+    // カートにメニューを追加
     public function addToCart($menuId)
     {
-        //getCashierServiceから「??機能」を移譲
         $menu = $this->getCashierService()->findMenu($menuId);
+
         foreach ($this->cart as &$item) {
             if ($item['id'] === $menu->id) {
                 $item['quantity']++;
@@ -139,152 +130,142 @@ class CashierSystem extends Component
                 return;
             }
         }
+
         $this->cart[] = [
             'id' => $menu->id,
             'name' => $menu->name,
             'price' => $menu->price,
             'quantity' => 1
         ];
+
         $this->updateCart();
     }
 
-    //個数を増やす機能
+    // カート内の数量を増やす
     public function increaseQuantity($index)
     {
         $this->cart[$index]['quantity']++;
         $this->updateCart();
     }
 
-    //個数を減らす処理
+    // カート内の数量を減らす
     public function decreaseQuantity($index)
     {
         $this->cart[$index]['quantity']--;
 
-        //もし0以下なら削除
         if ($this->cart[$index]['quantity'] <= 0) {
             array_splice($this->cart, $index, 1);
         }
+
         $this->updateCart();
     }
 
-    //カートをクリアする機能
+    // カートをクリア
     public function clearCart()
     {
         $this->cart = [];
         $this->updateCart();
     }
 
-    //カート反映処理
+    // 小計・消費税・合計の計算
     public function updateCart()
     {
         $this->subtotal = collect($this->cart)->sum(fn($item) => $item['price'] * $item['quantity']);
         $this->tax = floor($this->subtotal * 0.1);
         $this->total = $this->subtotal + $this->tax;
-        // お釣り再計算
-        $this->updateChangeAmount();
 
+        $this->updateChangeAmount();
     }
 
-    //??機能
+    // テンキーで受取金額を入力
     public function inputReceivedAmount($value)
     {
-        // テンキー入力値を加算
         $this->receivedAmount = (int)($this->receivedAmount . $value);
         $this->updateChangeAmount();
     }
 
-    //??機能
+    // 受取金額をクリア
     public function clearReceivedAmount()
     {
         $this->receivedAmount = 0;
         $this->updateChangeAmount();
     }
 
-    //??機能
+    // 受取金額を合計金額に揃える
     public function exactReceivedAmount()
     {
         $this->receivedAmount = $this->total;
         $this->updateChangeAmount();
     }
 
-    //??機能
+    // お釣り計算
     public function updateChangeAmount()
     {
         $this->changeAmount = max(0, $this->receivedAmount - $this->total);
     }
 
-    //??機能
+    // テーブル選択モーダル
     public function openTableModal()
     {
         $this->showTableModal = true;
     }
-
-    //??機能
     public function closeTableModal()
     {
         $this->showTableModal = false;
     }
-
-    //??機能
     public function selectTable($table)
     {
         $this->selectedTable = $table;
         $this->closeTableModal();
     }
 
-    //??機能
+    // チェックアウトモーダル
     public function openCheckoutModal()
     {
         $this->showCheckoutModal = true;
     }
-
-    //??機能
     public function closeCheckoutModal()
     {
         $this->showCheckoutModal = false;
     }
 
-    //??機能
+    // 会計完了モーダル
     public function openPaymentCompleteModal()
     {
         $this->showPaymentCompleteModal = true;
     }
-
-    //??機能
     public function closePaymentCompleteModal()
     {
         $this->showPaymentCompleteModal = false;
     }
 
-    //??機能
+    // 支払い方法選択
     public function selectPaymentMethod($method)
     {
         $this->selectedPaymentMethod = $method;
     }
 
-    //??機能
+    // 注文保存・会計完了処理
     public function saveOrder()
     {
-        // 会計完了モーダル用の値をセット
         $this->completeOrderNumber = $this->currentOrderNumber ?? '';
         $this->completeTotalAmount = $this->total ?? '';
         $this->completeChangeAmount = $this->changeAmount ?? '';
         $this->completeOrderItems = $this->cart;
+
         $this->cart = [];
         $this->updateCart();
         $this->receivedAmount = 0;
         $this->changeAmount = 0;
+
         $this->closeCheckoutModal();
         $this->openPaymentCompleteModal();
     }
 
-    //カテゴリー選択
+    // カテゴリーでメニューを絞り込む
     public function filterCategory($category)
     {
         $this->selectedCategory = $category;
         $this->menus = $this->allMenus->where('category.name', $category)->values();
     }
-
 }
-
-
