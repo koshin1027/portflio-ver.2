@@ -13,6 +13,10 @@
 
 <img width="400" height="400" alt="FireShot Capture 013 - POSレジシステム(仮) -  portfolio-pos-master-l9ctee laravel cloud" src="https://github.com/user-attachments/assets/6d912a76-a02e-4caa-b9a7-656da1ecbf9e" />
 
+✅直近の更新報告(2025/8/25)
+ - トランザクション処理の実装
+ - 排他制御の実装
+ - リファクタリング
 
 📌 概要
 
