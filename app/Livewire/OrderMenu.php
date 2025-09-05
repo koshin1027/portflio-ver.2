@@ -90,13 +90,13 @@ class OrderMenu extends Component
         $this->filterMenus();
     }
 
-    //??
+    //
     public function searchMenus()
     {
         $this->filterMenus();
     }
 
-    //??
+    //
     public function searchOrder()
     {
         if (empty($this->searchOrderNumber)) return;
