@@ -53,7 +53,7 @@ class KitchenOrders extends Component
         $this->fetchOrders();
     }
 
-    //??
+    //// 注文一覧と件数を取得してプロパティに反映
     public function fetchOrders()
     {
         //kitchenServiceから「ステータスでフィルターした注文一覧を取得する機能」を移譲
